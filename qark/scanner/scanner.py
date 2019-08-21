@@ -20,18 +20,20 @@ PLUGIN_CATEGORIES = ("manifest", "broadcast", "file", "crypto", "intent", "cert"
 
 class Scanner(object):
 
-    def __init__(self, manifest_path, path_to_source):
+    def __init__(self, manifest_path, path_to_source, blacklist_path):
         """
         Creates the scanner.
 
         :param str manifest_path: the path to the manifest file
         :param str path_to_source: the path to the source code
+        :param str blacklist_path: path to file containing blacklisted plugins
         """
         self.files = set()
         self.issues = []
         self.manifest_path = manifest_path
 
         self.path_to_source = path_to_source
+        self.plugin_blacklist = self._gather_blacklisted_plugins(blacklist_path) if blacklist_path else None 
 
         self._gather_files()
 
@@ -58,7 +60,7 @@ class Scanner(object):
                         self.issues.extend(plugin.issues)
                     continue
 
-            for plugin_name in get_plugins(category):
+            for plugin_name in get_plugins(category, self.plugin_blacklist):
                 plugins.append(plugin_source.load_plugin(plugin_name).plugin)
 
         self._run_checks(plugins)
@@ -100,6 +102,11 @@ class Scanner(object):
                     self.files.add(path.join(dir_path, file_name))
         except AttributeError:
             log.debug("Decompiler does not have a build directory")
+    
+    def _gather_blacklisted_plugins(self, blacklist_path):
+        with open(blacklist_path) as blacklist_file:
+            blacklist = blacklist_file.readline().strip('\n').split(',')
+        return blacklist
 
 
 class Subject(object):

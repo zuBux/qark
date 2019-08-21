@@ -35,17 +35,22 @@ def get_plugin_source(category=None):
         raise SystemExit("Failed to get all plugins. Is the file path correct?")
 
 
-def get_plugins(category=None):
+def get_plugins(category=None, blacklist=None):
     """
     Returns all plugins defined by a `category` and removes plugins defined in ``BLACKLISTED_PLUGIN_MODULES``.
 
     :param category: plugin category, subdirectory under `plugins/`
+    :param blacklist: list of modules to be ignored
     :return: modules for that category
     :rtype: list
     """
+    if blacklist:
+        blacklist.extend(BLACKLISTED_PLUGIN_MODULES)
+    else:
+        blacklist = BLACKLISTED_PLUGIN_MODULES
     plugins = get_plugin_source(category=category).list_plugins()
 
-    return [plugin for plugin in plugins if plugin not in BLACKLISTED_PLUGIN_MODULES]
+    return [plugin for plugin in plugins if plugin not in blacklist]
 
 
 class BasePlugin(object):

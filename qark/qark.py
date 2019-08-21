@@ -49,9 +49,11 @@ logger = logging.getLogger(__name__)
               help="report output path.", show_default=True)
 @click.option("--keep-report/--no-keep-report", default=False,
               help="Append to final report file.", show_default=True)
+@click.option("--blacklist-path", type=click.Path(exists=True, file_okay=True, resolve_path=True),
+              help="Path to file containing a comma separated list of blacklisted plugin names.")
 @click.version_option()
 @click.pass_context
-def cli(ctx, sdk_path, build_path, debug, source, report_type, exploit_apk, report_path, keep_report):
+def cli(ctx, sdk_path, build_path, debug, source, report_type, exploit_apk, report_path, keep_report, blacklist_path):
     if not source:
         click.secho("Please pass a source for scanning through either --java or --apk")
         click.secho(ctx.get_help())
@@ -90,7 +92,8 @@ def cli(ctx, sdk_path, build_path, debug, source, report_type, exploit_apk, repo
     click.secho("Running scans...")
     path_to_source = decompiler.path_to_source if decompiler.source_code else decompiler.build_directory
 
-    scanner = Scanner(manifest_path=decompiler.manifest_path, path_to_source=path_to_source)
+    scanner = Scanner(manifest_path=decompiler.manifest_path, path_to_source=path_to_source, 
+                      blacklist_path=blacklist_path)
     scanner.run()
     click.secho("Finish scans...")
 
